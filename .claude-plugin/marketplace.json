@@ -1,12 +1,14 @@
 {
-  "name": "feishu-tasks",
-  "version": "1.0.0",
-  "description": "Claude Code plugin: fetch Feishu (Lark) tasks and implement them in your codebase",
-  "author": {
-    "name": "coder-xiaotian",
-    "url": "https://github.com/coder-xiaotian/feishu-tasks"
+  "name": "coder-xiaotian",
+  "owner": {
+    "name": "coder-xiaotian"
   },
-  "repository": "https://github.com/coder-xiaotian/feishu-tasks",
-  "license": "MIT",
-  "keywords": ["feishu", "lark", "task"]
+  "plugins": [
+    {
+      "name": "feishu-tasks",
+      "version": "1.0.0",
+      "source": ".",
+      "description": "Fetch Feishu (Lark) tasks and implement them in your codebase. Zero dependencies - uses Python 3 stdlib only."
+    }
+  ]
 }
