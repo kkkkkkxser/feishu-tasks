@@ -138,7 +138,7 @@ def get_task(task_id: str) -> dict:
         "id": t["guid"],
         "summary": t["summary"],
         "description": t.get("description", ""),
-        "status": "completed" if t.get("completed_at") else "incomplete",
+        "status": t.get("status", "todo"),  # "todo" = 未完成, "done" = 已完成
         "due": time.strftime("%Y-%m-%d %H:%M", time.localtime(int(due_ts))) if due_ts else None,
         "members": [{"id": m["id"], "role": m.get("role")} for m in t.get("members", [])],
     }
@@ -157,7 +157,7 @@ def list_tasks(completed: bool = False, page_size: int = 20) -> dict:
             {
                 "id": t["guid"],
                 "summary": t["summary"],
-                "status": "completed" if t.get("completed_at") else "incomplete",
+                "status": t.get("status", "todo"),  # "todo" = 未完成, "done" = 已完成
                 "due": (
                     time.strftime("%Y-%m-%d", time.localtime(int(t["due"]["timestamp"])))
                     if t.get("due") else None
@@ -188,9 +188,9 @@ def add_comment(task_id: str, comment: str) -> dict:
     token = get_token()
     result = http(
         "POST",
-        f"/open-apis/task/v2/tasks/{tid}/comments",
+        "/open-apis/task/v2/comments",
         token=token,
-        body={"content": comment},
+        body={"resource_type": "task", "resource_id": tid, "content": comment},
     )
     if result.get("code") != 0:
         raise RuntimeError(f"添加评论失败（code={result.get('code')}）：{result.get('msg')}")

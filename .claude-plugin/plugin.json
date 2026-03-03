@@ -1,10 +1,10 @@
 {
   "name": "feishu-tasks",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Claude Code plugin: fetch Feishu (Lark) tasks and implement them in your codebase",
   "author": {
     "name": "coder-xiaotian",
-    "url": "https://github.com/coder-xiaotian/feishu-tasks"
+    "url": "https://github.com/coder-xiaotian"
   },
   "repository": "https://github.com/coder-xiaotian/feishu-tasks",
   "license": "MIT",
