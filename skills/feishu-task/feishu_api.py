@@ -26,8 +26,10 @@ FEISHU_BASE = "https://open.feishu.cn"
 PLUGIN_ROOT = pathlib.Path(
     os.environ.get("CLAUDE_PLUGIN_ROOT", pathlib.Path(__file__).parent.parent)
 )
-CONFIG_FILE = PLUGIN_ROOT / "feishu-config.json"
-TOKEN_CACHE_FILE = PLUGIN_ROOT / ".token_cache.json"
+# 配置存在 Claude Code 插件缓存目录，与插件文件分离，更新插件不会丢失凭据
+USER_CONFIG_DIR = pathlib.Path.home() / ".claude" / "plugins" / "cache" / "coder-xiaotian" / "feishu-tasks"
+CONFIG_FILE = USER_CONFIG_DIR / "config.json"
+TOKEN_CACHE_FILE = USER_CONFIG_DIR / ".token_cache.json"
 
 UUID_RE = re.compile(
     r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I
@@ -60,7 +62,7 @@ def read_config() -> dict | None:
 
 
 def save_config(app_id: str, app_secret: str) -> dict:
-    PLUGIN_ROOT.mkdir(parents=True, exist_ok=True)
+    USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     CONFIG_FILE.write_text(json.dumps({"app_id": app_id, "app_secret": app_secret}, indent=2))
     TOKEN_CACHE_FILE.unlink(missing_ok=True)  # clear stale token
     return {"success": True, "message": f"凭据已保存到 {CONFIG_FILE}"}
@@ -109,7 +111,7 @@ def get_token() -> str:
     token = result["tenant_access_token"]
     expires_at = time.time() + result.get("expire", 7200) - 60  # refresh 60s early
 
-    PLUGIN_ROOT.mkdir(parents=True, exist_ok=True)
+    USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     TOKEN_CACHE_FILE.write_text(json.dumps({"token": token, "expires_at": expires_at}))
     return token
 
@@ -192,7 +194,7 @@ def complete_task(task_id: str) -> dict:
         "PATCH",
         f"/open-apis/task/v2/tasks/{tid}?user_id_type=user_id",
         token=token,
-        body={"task": {"completed_at": str(int(time.time() * 1000))}, "update_fields": "completed_at"},
+        body={"task": {"completed_at": str(int(time.time() * 1000))}, "update_fields": ["completed_at"]},
     )
     if result.get("code") != 0:
         raise RuntimeError(f"完成任务失败（code={result.get('code')}）：{result.get('msg')}")
