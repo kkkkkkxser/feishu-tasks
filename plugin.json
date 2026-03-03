@@ -1,0 +1,6 @@
+{
+  "name": "feishu-tasks",
+  "version": "1.0.0",
+  "description": "Claude Code plugin: fetch Feishu (Lark) tasks and implement them in your codebase",
+  "keywords": ["feishu", "lark", "task", "claude-code-plugin"]
+}
