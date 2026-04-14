@@ -91,6 +91,36 @@ def check_config() -> dict:
     return {"configured": True, "app_id": cfg["app_id"]}
 
 
+def check_project_config() -> dict:
+    """检查前后端项目路径是否已配置"""
+    cfg = read_config() or {}
+    frontend = cfg.get("frontend_path")
+    backend = cfg.get("backend_path")
+    configured = bool(frontend or backend)
+    return {
+        "configured": configured,
+        "frontend_path": frontend,
+        "backend_path": backend,
+    }
+
+
+def save_project_config(frontend_path: str = None, backend_path: str = None) -> dict:
+    """保存前后端项目路径到 config.json（合并写入，不覆盖飞书凭据）"""
+    USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    cfg = read_config() or {}
+    if frontend_path:
+        cfg["frontend_path"] = frontend_path.rstrip("/\\")
+    if backend_path:
+        cfg["backend_path"] = backend_path.rstrip("/\\")
+    CONFIG_FILE.write_text(json.dumps(cfg, indent=2, ensure_ascii=False))
+    return {
+        "success": True,
+        "frontend_path": cfg.get("frontend_path"),
+        "backend_path": cfg.get("backend_path"),
+        "message": f"项目路径已保存到 {CONFIG_FILE}",
+    }
+
+
 # ── Token (file-cached) ───────────────────────────────────────────────────────
 
 def get_token() -> str:
@@ -245,6 +275,12 @@ def main():
         elif cmd == "add_comment":
             # comment may contain spaces, join remaining args
             out = add_comment(args[1], " ".join(args[2:]))
+        elif cmd == "check_project_config":
+            out = check_project_config()
+        elif cmd == "save_project_config":
+            frontend = args[1] if len(args) > 1 and args[1] != "null" else None
+            backend  = args[2] if len(args) > 2 and args[2] != "null" else None
+            out = save_project_config(frontend, backend)
         else:
             raise RuntimeError(f"未知命令：{cmd}")
 

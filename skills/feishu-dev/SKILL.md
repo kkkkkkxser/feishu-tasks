@@ -18,21 +18,26 @@ description: >
 
 ## Phase 0：项目路径配置（一次性）
 
-在 Phase 1 开始前，检查当前项目的 CLAUDE.md 是否包含前后端项目路径。
+在 Phase 1 开始前，检查项目路径是否已配置：
 
-**如果有**（格式如下），直接进 Phase 1：
-```
-## 项目路径
-- 前端: /path/to/frontend
-- 后端: /path/to/backend
+```bash
+PYTHONIOENCODING=utf-8 python3 "${CLAUDE_PLUGIN_ROOT}/skills/feishu-task/feishu_api.py" check_project_config
 ```
 
-**如果没有**，询问用户一次，并建议添加到项目 CLAUDE.md 中永久保存：
+**若已配置**（`configured: true`），直接进 Phase 1，从返回的 `frontend_path` / `backend_path` 读取对应 CLAUDE.md。
+
+**若未配置**（`configured: false`），用 AskUserQuestion 询问一次：
+
 ```
-【项目路径未配置】
-请告诉我前后端项目的路径，我帮你加到 CLAUDE.md 里，下次不再问。
-- 前端项目在哪？
-- 后端项目在哪？（没有后端可以跳过）
+【项目路径未配置】请提供前后端项目的根目录路径（没有的填 null）：
+- 前端项目路径（如 /Users/xxx/work/my-web）
+- 后端项目路径（如 /Users/xxx/work/my-api）
+```
+
+收到后保存（路径只需配置一次，后续所有任务复用）：
+
+```bash
+PYTHONIOENCODING=utf-8 python3 "${CLAUDE_PLUGIN_ROOT}/skills/feishu-task/feishu_api.py" save_project_config "<frontend_path>" "<backend_path>"
 ```
 
 ---
@@ -64,7 +69,19 @@ PYTHONIOENCODING=utf-8 python3 "${CLAUDE_PLUGIN_ROOT}/skills/feishu-task/feishu_
 - `task_summary`：任务标题
 - `task_link`：`https://applink.feishu.cn/client/todo/detail?guid=<task_id>`
 
-### 1.3.5 清晰度门槛（开始分析前必须过）
+### 1.3.5 加载项目编码规范
+
+根据任务范围，从 Phase 0 获取的路径中读取对应 CLAUDE.md：
+
+| 任务范围 | 读取文件 |
+|---|---|
+| 仅前端 | `{frontend_path}/CLAUDE.md`（如存在） |
+| 仅后端 | `{backend_path}/CLAUDE.md`（如存在） |
+| 前后端都涉及 | 两个都读 |
+
+用 Read 工具读取，加载到上下文。Phase 3.2 实现代码时**严格遵循**，不得使用规范外的写法。若文件不存在则跳过。
+
+### 1.3.6 清晰度门槛（开始分析前必须过）
 
 读完任务后，先做一次自我评估，**达到清晰才进入 1.4**，否则先提问。
 
@@ -197,7 +214,7 @@ PYTHONIOENCODING=utf-8 python3 "${CLAUDE_PLUGIN_ROOT}/skills/feishu-task/feishu_
 ### 3.2 实现代码
 
 按 Plan 中列出的每一项逐个修改。遵循：
-- 项目 CLAUDE.md 中的编码规范
+- **Phase 1.3.5 已加载的项目 CLAUDE.md 编码规范**（写法、工具库、返回格式等严格按规范）
 - **先找相似功能，再仿写**：grep 项目中已有的相似实现，用同样的模式
 - 只改 Plan 中列出的，不多改任何东西
 
